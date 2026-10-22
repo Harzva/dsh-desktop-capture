@@ -1,0 +1,75 @@
+ObjC.import('AppKit');
+ObjC.import('CoreGraphics');
+ObjC.bindFunction('proc_pidinfo', ['int', ['int', 'int', 'unsigned long long', 'void *', 'int']]);
+// Darwin sys/proc_info.h: PROC_PIDTBSDINFO=3, struct proc_bsdinfo=136 bytes
+// on both supported 64-bit Mac ABIs (arm64/x86_64). pbi_pid offset 12;
+// pbi_start_tvsec/usec are uint64_t at offsets 120/128. Verified against
+// /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/proc_info.h.
+// NSRunningApplication.launchDate can be nil for directly launched Electron.
+// The protocol's legacy launchDate field always means this process birth time,
+// including for apps with a valid NSDate, so identity never changes sources.
+function processBirth(pid) {
+  var data = $.NSMutableData.dataWithLength(136);
+  if (Number($.proc_pidinfo(pid, 3, 0, data.mutableBytes, 136)) !== 136) return null;
+  // NSData has no JavaScript byte-array bridge. Decode this fixed-size buffer.
+  var encoded = ObjC.unwrap(data.base64EncodedStringWithOptions(0));
+  var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  var bytes = [], value = 0, bits = 0;
+  for (var i = 0; i < encoded.length; i++) {
+    var digit = alphabet.indexOf(encoded[i]);
+    if (digit < 0) break;
+    value = (value << 6) | digit; bits += 6;
+    if (bits >= 8) { bits -= 8; bytes.push((value >> bits) & 255); }
+  }
+  if (bytes.length !== 136) return null;
+  var view = new DataView(new Uint8Array(bytes).buffer);
+  if (view.getUint32(12, true) !== pid) return null;
+  var seconds = view.getUint32(120, true) + view.getUint32(124, true) * 4294967296;
+  var micros = view.getUint32(128, true) + view.getUint32(132, true) * 4294967296;
+  if (!Number.isSafeInteger(seconds) || seconds <= 0 || seconds > Date.now() / 1000 + 1 ||
+      !Number.isSafeInteger(micros) || micros < 0 || micros >= 1000000) return null;
+  return seconds + micros / 1000000;
+}
+function emit(value) {
+  $.NSFileHandle.fileHandleWithStandardOutput.writeData($(JSON.stringify(value) + '\n').dataUsingEncoding($.NSUTF8StringEncoding));
+}
+function identity(app) {
+  if (!app || app.isNil()) return null;
+  var pid = Number(app.processIdentifier), birth = processBirth(pid);
+  if (birth === null) return null;
+  return { pid: pid, bundle: ObjC.unwrap(app.bundleIdentifier) || '',
+    name: ObjC.unwrap(app.localizedName) || '', launchDate: birth };
+}
+function windows() {
+  return ObjC.deepUnwrap(ObjC.castRefToObject($.CGWindowListCopyWindowInfo(17, 0)));
+}
+function normalWindow(w) {
+  return w.kCGWindowLayer === 0 && w.kCGWindowIsOnscreen && w.kCGWindowAlpha > 0 &&
+    w.kCGWindowBounds.Width > 0 && w.kCGWindowBounds.Height > 0;
+}
+function run(argv) {
+  var mode = argv[0], request = JSON.parse(argv[1]);
+  if (mode === 'list') {
+    var result = [], apps = {}, helperPid = Number($.NSProcessInfo.processInfo.processIdentifier);
+    windows().some(function(w) {
+      if (!normalWindow(w) || w.kCGWindowOwnerPID === request.ownPid || w.kCGWindowOwnerPID === helperPid) return false;
+      var pid = w.kCGWindowOwnerPID;
+      if (!(pid in apps)) apps[pid] = identity($.NSRunningApplication.runningApplicationWithProcessIdentifier(pid));
+      var app = apps[pid];
+      if (!app || app.bundle === 'com.apple.osascript' || app.name === 'osascript') return false;
+      result.push({ app: app, windowId: w.kCGWindowNumber, windowTitle: String(w.kCGWindowName || '').slice(0, 256) });
+      return result.length >= 100;
+    });
+    emit({ applications: result });
+  } else if (mode === 'query') {
+    var app = identity($.NSRunningApplication.runningApplicationWithProcessIdentifier(request.app.pid));
+    if (!app || app.pid !== request.app.pid || app.bundle !== request.app.bundle || app.launchDate !== request.app.launchDate) {
+      emit({ error: 'target-gone' }); return;
+    }
+    var selected = windows().find(function(w) {
+      return normalWindow(w) && w.kCGWindowOwnerPID === app.pid && w.kCGWindowNumber === request.windowId;
+    });
+    if (!selected) { emit({ error: 'window-unavailable' }); return; }
+    emit({ app: app, windowId: selected.kCGWindowNumber });
+  } else { throw new Error('Unsupported metadata operation'); }
+}

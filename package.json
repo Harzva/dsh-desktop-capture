@@ -1,0 +1,49 @@
+{
+  "name": "@openbot/dsh-desktop-capture",
+  "version": "0.1.0",
+  "description": "Host-injected desktop screenshots and system-audio/microphone recording for DSH",
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./host": "./host.cjs",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "index.mjs",
+    "host.cjs",
+    "cordis.patch.yml",
+    "lib/app-observation-macos.cjs",
+    "lib/app-observation-macos.jxa",
+    "lib/app-recording-native.cjs",
+    "native/app-recording-macos.swift",
+    "native/recording-helper",
+    "scripts/build-native.cjs",
+    "examples/host.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:native": "node scripts/build-native.cjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ]
+}

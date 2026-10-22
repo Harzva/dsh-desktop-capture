@@ -1,0 +1,4 @@
+node_modules/
+native/recording-helper
+*.tgz
+.DS_Store

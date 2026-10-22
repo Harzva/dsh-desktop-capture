@@ -1,0 +1,5 @@
+- insert:
+    - id: openbot-desktop-capture
+      name: '@openbot/dsh-desktop-capture'
+      inject: [tools, desktopCapture]
+      config: {}
