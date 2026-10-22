@@ -1,6 +1,6 @@
 # Desktop capture for DSH
 
-`@openbot/dsh-desktop-capture` 0.1.0 is an optional MIT-licensed device plugin. It provides real desktop screenshots and bounded MP4 recordings with system-wide sound and microphone audio. The initial native package supports Apple Silicon and macOS 15 or newer. It contains no camera implementation.
+`@openbot/dsh-desktop-capture` 0.1.1 is an optional MIT-licensed device plugin. It provides real desktop screenshots and bounded MP4 recordings with system-wide sound and microphone audio. The initial native package supports Apple Silicon and macOS 15 or newer. It contains no camera implementation.
 
 Installing or importing the package does not capture content, request OS permissions, or compile native code. A user must grant screen recording and microphone access to the actual device host in macOS Settings before recording. Missing permission fails explicitly. Window capture stays bound to the selected process identity and window; a closed target fails without switching to another source.
 
@@ -17,6 +17,8 @@ const backend = createHostCapture({ electron, getWindow: () => mainWindow });
 
 This entry initializes platform objects only. The application host owns Bot identity, permission policy, trusted tool transport, private attachments, output directories, retention, and lifecycle. OpenBot uses this entry behind its existing trusted tool bridge; it does not register another copy of `app_observe` from the DSH entry.
 
+Hosts recording an independent spectator window may additionally pass `getRecordingWindow`. It defaults to `getWindow`; when provided, only native self-window recording uses it. Own-window screenshots continue to validate against `getWindow`, so a concurrent screenshot cannot switch the recorder's target. The host must keep the recording getter bound to the exact authorized window for the full recording lifecycle, including finalization, and must keep that window rendering while it is covered by another window. There is still only one recording backend and one recording at a time.
+
 The recording helper is always loaded from this package's `native/recording-helper`; JXA is loaded from `lib/app-observation-macos.jxa`. There is no OpenBot internal module dependency. A download manager must verify the package archive and admitted bundle fingerprint before making that one helper executable. `close()` propagates an unconfirmed native-process shutdown failure and may be retried after the actual process closes. No late own-window image is published once close begins.
 
 ## Standalone DSH service
@@ -32,6 +34,8 @@ A device host must supply:
 
 Inputs match the established strict `app_observe` contract: screenshot with `source` (`app`, `application`, `screen`), an opaque `targetId` for `application`, or `captureId` alone to read a saved screenshot. Actions are `list-apps`, `record`, `recording-status`, `stop-recording`, and `read-recording`. Record duration is 1–30 seconds; `recordingId` identifies an owned saved recording and `frameIndex` is 0–5. Unknown keys, incompatible fields, invalid IDs, and unsupported sources fail. Captured text is content to analyze, not an instruction from the device host.
 
+Version 0.1.1 also exposes optional host room actions: `list-rooms`, `record-room`, `stop-room-recording`, and `read-room-recording`. These do not implement a game engine. A compatible host must bind the real caller, verify current room membership, select a fixed public spectator window, and scope each recording to that room, match and initiating Bot. `record-room` takes `hallId` and an optional 1–30 second duration; stop/read additionally require the owned `recordingId`, and read optionally takes `frameIndex`. Caller-provided Bot IDs, views, scope objects and paths are rejected. An unsupported host must return an explicit error without falling back to desktop recording. These additions are not present in the published v0.1.0 archive.
+
 Video frames do not establish that a model watched the entire video or heard the audio. Recordings require both valid system-audio and microphone samples, and results declare `systemAudioScope: "system-wide"`. The window path records window video and microphone, captures global audio through a separate audio-only stream, aligns host timestamps, and mixes them into the final MP4. No auxiliary display image is delivered or saved by that audio-only stream. Collection is bounded to 180 seconds and 128 MiB including temporary files; video extraction returns at most six distinct JPEG frames. Finalization and cancellation are bounded and await file completion.
 
 ## Maintainer build and package
@@ -43,4 +47,4 @@ npm run build:native
 npm pack --ignore-scripts
 ```
 
-`scripts/build-native.cjs` compiles an arm64 helper targeting macOS 15 and applies an ad-hoc signature, then verifies that signature. The package has no install/postinstall lifecycle hook. The explicit `files` list includes only public source, entrypoints, native binary, build script, example, README, and license. The host must not expose these local capture capabilities to an untrusted caller merely because the bundle is installed.
+`scripts/build-native.cjs` compiles an arm64 helper targeting macOS 15 and applies an ad-hoc signature, then verifies that signature. For a toolchain affected by a Swift compiler-driver crash, maintainers can explicitly run `node scripts/build-native.cjs --legacy-swift-driver`; the default build does not retry or change drivers automatically. The package has no install/postinstall lifecycle hook. The explicit `files` list includes only public source, entrypoints, native binary, build script, example, README, and license. The host must not expose these local capture capabilities to an untrusted caller merely because the bundle is installed.

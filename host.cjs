@@ -2,10 +2,10 @@
 const path = require('node:path');
 const { MacAppCapture } = require('./lib/app-observation-macos.cjs');
 const { MacRecordingBackend } = require('./lib/app-recording-native.cjs');
-function createHostCapture({ electron, getWindow }) {
-  if (!electron || typeof getWindow !== 'function') throw new TypeError('electron and getWindow are required');
+function createHostCapture({ electron, getWindow, getRecordingWindow = getWindow }) {
+  if (!electron || typeof getWindow !== 'function' || typeof getRecordingWindow !== 'function') throw new TypeError('electron and window getters are required');
   const capture = new MacAppCapture({ electron });
-  const recording = new MacRecordingBackend({ electron, capture, getWindow, helperPath: path.join(__dirname, 'native', 'recording-helper') });
+  const recording = new MacRecordingBackend({ electron, capture, getWindow: getRecordingWindow, helperPath: path.join(__dirname, 'native', 'recording-helper') });
   let closed = false;
   const pending = new Set();
   const failure = (code, message) => Object.assign(new Error(message), { code });

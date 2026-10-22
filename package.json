@@ -1,6 +1,6 @@
 {
   "name": "@openbot/dsh-desktop-capture",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Host-injected desktop screenshots and system-audio/microphone recording for DSH",
   "license": "MIT",
   "type": "module",
@@ -26,6 +26,7 @@
     "LICENSE"
   ],
   "scripts": {
+    "test": "node --test test/host.test.cjs test/tool.test.mjs",
     "build:native": "node scripts/build-native.cjs"
   },
   "dsh": {

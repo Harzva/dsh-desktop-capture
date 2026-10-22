@@ -192,7 +192,8 @@ final class SystemAudioFile: NSObject, SCStreamOutput, @unchecked Sendable {
             config.width = max(2, Int(frame.width * scale) / 2 * 2)
             config.height = max(2, Int(frame.height * scale) / 2 * 2)
             config.minimumFrameInterval = CMTime(value: 1, timescale: 15)
-            config.queueDepth = 3
+            // Use the platform-default depth to support sustained SCRecordingOutput.
+            config.queueDepth = 8
             config.capturesAudio = request.windowId == nil
             config.excludesCurrentProcessAudio = false
             config.captureMicrophone = true
