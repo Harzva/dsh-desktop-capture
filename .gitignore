@@ -2,3 +2,4 @@ node_modules/
 native/recording-helper
 *.tgz
 .DS_Store
+native/demo-ax-helper

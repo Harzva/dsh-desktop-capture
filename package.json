@@ -1,6 +1,6 @@
 {
   "name": "@openbot/dsh-desktop-capture",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Host-injected desktop screenshots and system-audio/microphone recording for DSH",
   "license": "MIT",
   "type": "module",
@@ -20,14 +20,20 @@
     "lib/app-recording-native.cjs",
     "native/app-recording-macos.swift",
     "native/recording-helper",
+    "demo/**/*.mjs",
+    "demo/action/LibprocBridge.h",
+    "native/demo-ax.swift",
+    "native/demo-ax-helper",
     "scripts/build-native.cjs",
+    "scripts/build-demo-native.cjs",
     "examples/host.mjs",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/host.test.cjs test/tool.test.mjs",
-    "build:native": "node scripts/build-native.cjs"
+    "test": "node --test test/host.test.cjs test/tool.test.mjs test/demo-build.test.cjs test/demo-components.test.mjs test/demo-foreground.test.mjs",
+    "build:native": "node scripts/build-native.cjs",
+    "build:demo-native": "node scripts/build-demo-native.cjs"
   },
   "dsh": {
     "bundle": {

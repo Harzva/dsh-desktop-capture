@@ -12,7 +12,11 @@ The menu also supports **Install from file** using the exact released `.tgz`. Di
 
 ## Release files
 
-[Download v0.1.0](https://github.com/Harzva/dsh-desktop-capture/releases/tag/v0.1.0). Verify the archive against `SHA256SUMS` before using a separate host. The supplied helper is ad-hoc signed, not notarized. `release.json` contains the package, admitted bundle, and native-helper SHA256 pins used by OpenBot.
+[Download v0.2.0](https://github.com/Harzva/dsh-desktop-capture/releases/tag/v0.2.0). Verify the archive against `SHA256SUMS` before using a separate host. The supplied helpers are ad-hoc signed, not notarized. `release.json` contains the package, admitted bundle, and both native-helper SHA256 pins used by a compatible OpenBot build. An older host pinned to v0.1.1 continues to use that release; this plugin does not upgrade the host automatically.
+
+Version 0.2.0 adds optional application-demonstration components for a compatible trusted host: exact-window AX control, a frozen approved plan, recording, macOS voice narration and MP4/SRT export. Installing the package alone does not add these tools to a plain DSH CLI or an older OpenBot build. See README.md for the host lifecycle and additional Accessibility, voice and media-tool requirements.
+
+Recording is currently single-session, with a 15 fps capture interval and a maximum long edge of 1920 pixels. Multiple simultaneous videos, selectable frame rates/resolutions and camera overlays are not included in this release.
 
 ## Other DSH hosts
 
