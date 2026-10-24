@@ -1,0 +1,13 @@
+{
+  "list": true,
+  "open": true,
+  "read": true,
+  "claim": true,
+  "write": true,
+  "resize": true,
+  "close": true,
+  "commands": true,
+  "rerun": true,
+  "settings": true,
+  "settings-update": true
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@openbot/dsh-superterminal",
+  "version": "0.2.1",
+  "description": "Independently versioned terminal commands for OpenBot desktop Host API v1",
+  "license": "MIT",
+  "main": "./worker.cjs",
+  "files": [
+    "worker.cjs",
+    "protocol.json",
+    "desktop-plugin.json",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=22 <23"
+  }
+}

@@ -1,39 +1,40 @@
 {
   "name": "@openbot/dsh-desktop-capture",
-  "version": "0.2.2",
-  "description": "Host-injected desktop screenshots and system-audio/microphone recording for DSH",
+  "version": "0.3.1",
+  "description": "Optional isolated desktop capture worker for OpenBot Host API 1",
   "license": "MIT",
   "type": "module",
   "main": "./index.mjs",
   "exports": {
     ".": "./index.mjs",
-    "./host": "./host.cjs",
     "./package.json": "./package.json",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
   "files": [
-    "index.mjs",
-    "host.cjs",
-    "cordis.patch.yml",
-    "lib/app-observation-macos.cjs",
-    "lib/app-observation-macos.jxa",
-    "lib/app-recording-native.cjs",
-    "native/app-recording-macos.swift",
-    "native/recording-helper",
-    "demo/**/*.mjs",
-    "demo/action/LibprocBridge.h",
-    "native/demo-ax.swift",
-    "native/demo-ax-helper",
-    "scripts/build-native.cjs",
-    "scripts/build-demo-native.cjs",
-    "examples/host.mjs",
-    "README.md",
-    "LICENSE"
+    "./index.mjs",
+    "./worker.cjs",
+    "./desktop-plugin.json",
+    "./cordis.patch.yml",
+    "./lib/app-observation-macos.jxa",
+    "./native/app-recording-macos.swift",
+    "./native/recording-helper",
+    "./native/demo-ax.swift",
+    "./native/demo-ax-helper",
+    "./demo/action/LibprocBridge.h",
+    "./demo/narration/*.mjs",
+    "./helpers/narration.mjs",
+    "./scripts/build-native.cjs",
+    "./scripts/build-demo-native.cjs",
+    "./README.md",
+    "./LICENSE",
+    "./scripts/build-desktop-manifest.cjs"
   ],
   "scripts": {
     "test": "node --test --test-concurrency=1 test/host.test.cjs test/tool.test.mjs test/demo-build.test.cjs test/demo-components.test.mjs test/demo-foreground.test.mjs test/owned-window.test.cjs test/audio-mode.test.cjs",
     "build:native": "node scripts/build-native.cjs",
-    "build:demo-native": "node scripts/build-demo-native.cjs"
+    "build:demo-native": "node scripts/build-demo-native.cjs",
+    "build:desktop-manifest": "node scripts/build-desktop-manifest.cjs",
+    "prepack": "node scripts/build-desktop-manifest.cjs"
   },
   "dsh": {
     "bundle": {

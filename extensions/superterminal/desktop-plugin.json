@@ -1,0 +1,381 @@
+{
+  "schema": "openbot.desktop-plugin/1",
+  "id": "superterminal",
+  "name": "DSH SuperTerminal",
+  "version": "0.2.1",
+  "hostApi": "^1.0.0",
+  "platforms": [
+    "darwin"
+  ],
+  "architectures": [
+    "arm64",
+    "x64"
+  ],
+  "minimumOS": {},
+  "runtime": {
+    "kind": "node-process",
+    "node": ">=22 <23",
+    "nativeAddons": false
+  },
+  "entry": "worker.cjs",
+  "dataVersion": 1,
+  "capabilities": [
+    "terminal.read",
+    "terminal.open",
+    "terminal.write",
+    "terminal.configure"
+  ],
+  "contributions": {
+    "tools": [
+      {
+        "id": "terminal.list",
+        "title": "Terminal list",
+        "method": "list",
+        "input": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.read"
+        ]
+      },
+      {
+        "id": "terminal.open",
+        "title": "Terminal open",
+        "method": "open",
+        "input": {
+          "type": "object",
+          "properties": {
+            "launcher": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "requestId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 500
+            },
+            "cols": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 1000
+            }
+          },
+          "required": [
+            "requestId"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.open"
+        ]
+      },
+      {
+        "id": "terminal.read",
+        "title": "Terminal read",
+        "method": "read",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "terminalId",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.read"
+        ]
+      },
+      {
+        "id": "terminal.claim",
+        "title": "Terminal claim",
+        "method": "claim",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "viewerId": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "terminalId",
+            "viewerId"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.write"
+        ]
+      },
+      {
+        "id": "terminal.write",
+        "title": "Terminal write",
+        "method": "write",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "lease": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "data": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 65536
+            }
+          },
+          "required": [
+            "terminalId",
+            "lease",
+            "sequence",
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.write"
+        ]
+      },
+      {
+        "id": "terminal.resize",
+        "title": "Terminal resize",
+        "method": "resize",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "lease": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 500
+            },
+            "cols": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 1000
+            }
+          },
+          "required": [
+            "terminalId",
+            "lease",
+            "rows",
+            "cols"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.write"
+        ]
+      },
+      {
+        "id": "terminal.close",
+        "title": "Terminal close",
+        "method": "close",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "lease": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "terminalId",
+            "lease"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.write"
+        ]
+      },
+      {
+        "id": "terminal.commands",
+        "title": "Terminal commands",
+        "method": "commands",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "lastN": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "query": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "running",
+                "succeeded",
+                "failed",
+                "interrupted"
+              ]
+            }
+          },
+          "required": [
+            "terminalId"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.read"
+        ]
+      },
+      {
+        "id": "terminal.rerun",
+        "title": "Terminal rerun",
+        "method": "rerun",
+        "input": {
+          "type": "object",
+          "properties": {
+            "terminalId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "commandId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "lease": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "sequence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "terminalId",
+            "commandId",
+            "lease",
+            "sequence"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.write"
+        ]
+      },
+      {
+        "id": "terminal.settings",
+        "title": "Terminal settings",
+        "method": "settings",
+        "input": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.read"
+        ]
+      },
+      {
+        "id": "terminal.settings-update",
+        "title": "Terminal settings-update",
+        "method": "settings-update",
+        "input": {
+          "type": "object",
+          "properties": {
+            "expectedRevision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 500
+            },
+            "cols": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 1000
+            },
+            "defaultLauncher": {
+              "type": "string",
+              "maxLength": 64
+            }
+          },
+          "required": [
+            "expectedRevision"
+          ],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.configure"
+        ]
+      }
+    ],
+    "actions": [],
+    "settings": [],
+    "panels": [
+      {
+        "id": "terminal.panel",
+        "title": "Terminal",
+        "method": "list",
+        "input": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        },
+        "capabilities": [
+          "terminal.read"
+        ]
+      }
+    ]
+  },
+  "nativeHelpers": []
+}

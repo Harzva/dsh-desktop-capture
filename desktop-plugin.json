@@ -1,0 +1,193 @@
+{
+  "architectures": [
+    "arm64"
+  ],
+  "capabilities": [
+    "capture.observe",
+    "capture.record",
+    "capture.demo",
+    "capture.narrate"
+  ],
+  "contributions": {
+    "actions": [],
+    "panels": [],
+    "settings": [],
+    "tools": [
+      {
+        "capabilities": [
+          "capture.observe"
+        ],
+        "id": "capture.applications",
+        "input": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "maxLength": 256,
+              "type": "string"
+            }
+          },
+          "required": [],
+          "type": "object"
+        },
+        "method": "applications",
+        "title": "Capture applications"
+      },
+      {
+        "capabilities": [
+          "capture.observe"
+        ],
+        "id": "capture.screenshot",
+        "input": {
+          "additionalProperties": false,
+          "properties": {
+            "source": {
+              "enum": [
+                "app",
+                "application",
+                "screen"
+              ],
+              "type": "string"
+            },
+            "targetId": {
+              "maxLength": 32,
+              "minLength": 32,
+              "type": "string"
+            }
+          },
+          "required": [
+            "source"
+          ],
+          "type": "object"
+        },
+        "method": "screenshot",
+        "title": "Capture screenshot"
+      },
+      {
+        "capabilities": [
+          "capture.record"
+        ],
+        "id": "capture.record",
+        "input": {
+          "additionalProperties": false,
+          "properties": {
+            "audioMode": {
+              "enum": [
+                "system",
+                "system-and-microphone"
+              ],
+              "type": "string"
+            },
+            "maxDurationSeconds": {
+              "maximum": 180,
+              "minimum": 1,
+              "type": "number"
+            },
+            "source": {
+              "enum": [
+                "app",
+                "application",
+                "screen"
+              ],
+              "type": "string"
+            },
+            "targetId": {
+              "maxLength": 32,
+              "minLength": 32,
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "audioMode",
+            "maxDurationSeconds"
+          ],
+          "type": "object"
+        },
+        "method": "record",
+        "title": "Capture record"
+      },
+      {
+        "capabilities": [
+          "capture.demo"
+        ],
+        "id": "capture.demo-prepare",
+        "input": {
+          "additionalProperties": false,
+          "properties": {},
+          "required": [],
+          "type": "object"
+        },
+        "method": "demo-prepare",
+        "title": "Capture demo-prepare"
+      },
+      {
+        "capabilities": [
+          "capture.narrate"
+        ],
+        "id": "capture.voices",
+        "input": {
+          "additionalProperties": false,
+          "properties": {},
+          "required": [],
+          "type": "object"
+        },
+        "method": "voices",
+        "title": "Capture voices"
+      },
+      {
+        "capabilities": [
+          "capture.narrate"
+        ],
+        "id": "capture.narrate",
+        "input": {
+          "additionalProperties": false,
+          "properties": {},
+          "required": [],
+          "type": "object"
+        },
+        "method": "narrate",
+        "title": "Capture narrate"
+      }
+    ]
+  },
+  "dataVersion": 1,
+  "entry": "worker.cjs",
+  "hostApi": "^1.0.0",
+  "id": "desktop-capture",
+  "minimumOS": {
+    "darwin": "24.0.0"
+  },
+  "name": "DSH Desktop Capture",
+  "nativeHelpers": [
+    {
+      "id": "application-observer",
+      "path": "lib/app-observation-macos.jxa",
+      "sha256": "3bb0885503fc9a19b35e6fd40ae7b07cb4e54e943cb33f8ee3a136b1e3fe38af"
+    },
+    {
+      "id": "recording",
+      "path": "native/recording-helper",
+      "sha256": "38a3e8eb94b1ef727ec255011b1bc9e8e66226a6a50ac8fc29ddf06cec96908e"
+    },
+    {
+      "id": "demo-ax",
+      "path": "native/demo-ax-helper",
+      "sha256": "1e3bd884a8267f9631118e5a9321a4f0e397e38d17354d9869deafb614d4653b"
+    },
+    {
+      "id": "narration",
+      "path": "helpers/narration.mjs",
+      "sha256": "2e0bd94e7bc9e8692773432e09cbfdb7b54a81fb5793178132ca97b6617f72b0"
+    }
+  ],
+  "platforms": [
+    "darwin"
+  ],
+  "runtime": {
+    "kind": "node-process",
+    "nativeAddons": false,
+    "node": ">=22 <23"
+  },
+  "schema": "openbot.desktop-plugin/1",
+  "version": "0.3.1"
+}
