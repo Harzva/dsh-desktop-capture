@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "desktop-capture",
+  "packageName": "@openbot/dsh-desktop-capture",
+  "version": "0.2.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "minimumMacOS": 15,
+  "asset": {
+    "url": "https://github.com/Harzva/dsh-desktop-capture/releases/download/v0.2.2/openbot-dsh-desktop-capture-0.2.2.tgz",
+    "sha256": "2220c2d8b1b2d13d001ae438f42cb3ff340442c6590d13c0452da312685c50b2",
+    "bytes": 250707
+  },
+  "bundleSha256": "3594de16be1ff79765fd94703e4119f81f73517ae59bbaf4169e60dc1343eaf9",
+  "helper": {
+    "relativePath": "native/recording-helper",
+    "sha256": "38a3e8eb94b1ef727ec255011b1bc9e8e66226a6a50ac8fc29ddf06cec96908e"
+  },
+  "demoHelper": {
+    "relativePath": "native/demo-ax-helper",
+    "sha256": "1e3bd884a8267f9631118e5a9321a4f0e397e38d17354d9869deafb614d4653b"
+  }
+}

@@ -118,8 +118,11 @@ export function createRunner({ adapters, clock = { now: () => performance.now() 
         try { await captureStart; } catch { /* start may have had an uncertain effect; still stop own capture */ }
         const result = evidence(await adapters.capture.stop({ binding, signal: cleanupSignal, reason: stopReason || state.reason || 'finished' }), ['stopped', 'unknown']);
         state.capture.stopEvidence = result.evidence;
-        if (result.status !== 'stopped') throw new Error('Capture stop is unknown');
+        if (result.status !== 'stopped') throw new Halt('capture_stop_failed');
         state.capture.status = 'stopped'; state.capture.stoppedAt = now();
+        state.capture.mediaState = result.evidence.mediaState || 'unusable';
+        state.capture.publishable = result.evidence.publishable === true && state.capture.mediaState === 'complete';
+        if (result.evidence.mediaError) state.capture.mediaError = clone(result.evidence.mediaError);
         event('capture_stopped', { evidence: result.evidence });
       })();
       return stopPromise;
@@ -205,6 +208,7 @@ export function createRunner({ adapters, clock = { now: () => performance.now() 
           current.completedAt = now(); event('step_completed', { stepId: step.id }); await save();
         }
         await stopCapture(); guard();
+        if (!state.capture.publishable) throw new Halt('capture_media_incomplete');
         state.status = 'completed'; state.reason = null; event('run_completed'); await save();
       }
     } catch (error) {
@@ -219,11 +223,23 @@ export function createRunner({ adapters, clock = { now: () => performance.now() 
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener('abort', externalAbort);
-      try { await stopCapture(); } catch (error) { state.status = state.status === 'cancelled' ? 'cancelled' : 'paused'; state.reason = 'capture_stop_failed'; state.capture.status = 'unknown'; state.capture.error = message(error); }
-      try { if (typeof unsubscribe === 'function') unsubscribe(); } catch (error) { state.status = 'paused'; state.reason = 'host_stop_cleanup_failed'; state.error = message(error); }
+      try { await stopCapture(); } catch (error) {
+        state.status = state.status === 'cancelled' ? 'cancelled' : 'paused';
+        state.reason ||= 'capture_stop_failed';
+        state.capture.status = 'unknown'; state.capture.publishable = false;
+        state.capture.error = message(error);
+        state.cleanupError = { reason: 'capture_stop_failed', message: message(error) };
+      }
+      try { if (typeof unsubscribe === 'function') unsubscribe(); } catch (error) {
+        state.status = 'paused'; state.reason ||= 'host_stop_cleanup_failed';
+        state.hostStopCleanupError = message(error);
+      }
       // Cleanup persists even after cancellation. A failure is never reported as success.
       try { if (lease !== undefined && lease !== null) await adapters.persistence.finish(lease, clone(state)); }
-      catch (error) { state.status = state.status === 'cancelled' ? 'cancelled' : 'paused'; state.reason = 'persistence_failed'; state.error = message(error); }
+      catch (error) {
+        state.status = state.status === 'cancelled' ? 'cancelled' : 'paused'; state.reason ||= 'persistence_failed';
+        state.persistenceError = message(error);
+      }
       active.delete(key); active.delete(targetKey);
     }
     return clone(state);

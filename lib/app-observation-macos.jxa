@@ -61,6 +61,19 @@ function run(argv) {
       return result.length >= 100;
     });
     emit({ applications: result });
+  } else if (mode === 'owned-query') {
+    // Only the host module supplies ownPid and the BrowserWindow-derived ID.
+    // No app identity supplied by a renderer/model is accepted in this mode.
+    if (Object.keys(request).sort().join() !== 'ownPid,windowId' ||
+        !Number.isSafeInteger(request.ownPid) || request.ownPid <= 0 ||
+        !Number.isSafeInteger(request.windowId) || request.windowId <= 0 || request.windowId > 4294967295) throw new Error('Invalid owned window request');
+    var ownedApp = identity($.NSRunningApplication.runningApplicationWithProcessIdentifier(request.ownPid));
+    if (!ownedApp || ownedApp.pid !== request.ownPid) { emit({ error: 'target-gone' }); return; }
+    var ownedWindows = windows().filter(function(w) {
+      return normalWindow(w) && w.kCGWindowOwnerPID === request.ownPid && w.kCGWindowNumber === request.windowId;
+    });
+    if (ownedWindows.length !== 1) { emit({ error: 'window-unavailable' }); return; }
+    emit({ app: ownedApp, windowId: ownedWindows[0].kCGWindowNumber });
   } else if (mode === 'query') {
     var app = identity($.NSRunningApplication.runningApplicationWithProcessIdentifier(request.app.pid));
     if (!app || app.pid !== request.app.pid || app.bundle !== request.app.bundle || app.launchDate !== request.app.launchDate) {

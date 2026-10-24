@@ -111,3 +111,24 @@ test('host authorization failures pass through without attachment writes or fall
  const reason=Object.assign(new Error('Room membership revoked'),{code:'ROOM_CAPTURE_SCOPE_REQUIRED'}),f=fixture({observe:async()=>{throw reason;}});
  await assert.rejects(f.run({action:'record-room',hallId}),e=>e===reason);assert.equal(f.calls.observe.length,1);assert.equal(f.calls.saveImage.length,0);
 });
+
+
+test('browser recording exposes bounded start and selectable audio without caller target authority',async()=>{
+ assert(inputSchema.properties.action.enum.includes('start-browser-recording'));
+ assert.deepEqual(inputSchema.properties.audioMode.enum,['system','system-and-microphone']);
+ assert.equal(inputSchema.properties.maxDurationSeconds.maximum,180);
+ for(const audioMode of ['system','system-and-microphone']) {
+  const value={recordingId,state:'recording',systemAudioScope:'system-wide'};
+  const f=fixture({observe:async()=>value}),args={action:'start-browser-recording',audioMode,maxDurationSeconds:180};
+  assert.deepEqual(await f.run(args),{metadata:value,images:[]}); assert.deepEqual(f.calls.observe[0][0],args);
+  const r=fixture();await r.run({action:'record',source:'app',audioMode,durationSeconds:1});
+  assert.equal(r.calls.observe[0][0].audioMode,audioMode);
+ }
+ for(const extra of [{maxDurationSeconds:181},{maxDurationSeconds:1.5},{maxDurationSeconds:0},{audioMode:'microphone'},
+  {source:'screen'},{targetId:'b'.repeat(32)},{botId:'victim'},{url:'https://example.invalid'},{captureId:recordingId},{signal:{}}]) {
+  const f=fixture();await assert.rejects(f.run({action:'start-browser-recording',...extra}),invalid);assert.equal(f.calls.observe.length,0);
+ }
+ for(const args of [{source:'app',audioMode:'system'},{action:'record-room',hallId,audioMode:'system'}]) {
+  const f=fixture();await assert.rejects(f.run(args),invalid);assert.equal(f.calls.observe.length,0);
+ }
+});

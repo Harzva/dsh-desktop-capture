@@ -14,23 +14,30 @@ export function createRecordingAdapter({recording,botId,source='application',tar
  check(own?targetId===undefined&&target.pid===process.pid:/^[a-f0-9]{32}$/.test(targetId||''),'Own capture must belong to this host process without a target token; external capture requires its opaque token');
  check(typeof (own?resolveOwnRecordingTarget:resolveRecordingTarget)==='function'&&typeof guard==='function','Trusted target resolver and execution guard required');
  const evidence=(s,extra={})=>({adapter:'existing-AppRecording',recordingId:s?.id??null,source,...extra});
- const unknown=(s,e)=>({status:'unknown',evidence:evidence(s,{error:String(e?.message||e).slice(0,2000),fenceRetained:!!s?.called&&!s?.closed})});
+ const unknown=(s,e)=>({status:'unknown',evidence:evidence(s,{error:String(e?.message||e).slice(0,2000),fenceRetained:!!s?.called&&!s?.closed,...(s?.physicalClosure?{physicalClosure:s.physicalClosure}:{})})});
  target=structuredClone(target);let s,used=false;
  const bind=ctx=>check(ctx?.binding?.host?.botId===botId&&canonical(ctx.binding.target)===canonical(target),'Director binding does not match trusted Bot/target');
  async function end(cancel){
-  if(!s||!s.called){if(s&&sessions.get(recording)===s)sessions.delete(recording);return {status:'stopped',evidence:evidence(s,{noRecordingStarted:true})};}
+  if(!s||!s.called){if(s&&sessions.get(recording)===s)sessions.delete(recording);return {status:'stopped',evidence:evidence(s,{noRecordingStarted:true,mediaState:'unusable',publishable:false})};}
   if(!s.id)return unknown(s,'Start outcome has no acknowledged recordingId; host reconciliation required');
   if(s.stopPromise)return s.stopPromise;
   s.stopPromise=(async()=>{
    try{
     let failure;
-    try{const result=await recording[cancel?'cancel':'stop'](botId,s.id);if(!cancel)s.metadata=structuredClone(result);}catch(e){failure=e;}
+    try{const result=await recording[cancel?'cancel':'stop'](botId,s.id);if(!cancel&&result?.ok===true&&!result.cancelled)s.metadata=structuredClone(result);}catch(e){failure=e;}
     const status=await recording.statusExact(botId,s.id);
     check(status?.recordingId===s.id&&status.state==='closed'&&status.captureClosed===true&&status.startSettled===true,'Exact physical closure not confirmed');
-    if(failure&&!cancel)throw failure; // finalized-error media is not successful recording/export material
+    s.physicalClosure=structuredClone(status);
+    // Physical closure is independent of media finalization. A closed failed
+    // recording releases its exact owner but must never become export material.
+    const mediaState=status.mediaState??(!failure&&!cancel&&s.metadata?'complete':'unusable');
+    check(['complete','partial','unusable'].includes(mediaState),'Invalid terminal media state');
+    const publishable=!failure&&!cancel&&!!s.metadata&&mediaState==='complete'&&(status.publishable??true)===true;
+    const mediaError=failure?{code:String(failure.code||'APP_RECORDING_FAILED').slice(0,128),message:String(failure.message||failure).slice(0,1000)}:status.mediaError;
+    if(!publishable)s.metadata=null;
     await recording.release(botId,s.id);
-    if(sessions.get(recording)===s)sessions.delete(recording);s.closed=true;
-    return {status:'stopped',evidence:evidence(s,{cancelled:cancel,physicalClosure:status,...(s.metadata?{metadata:s.metadata}:{})})};
+    if(sessions.get(recording)===s)sessions.delete(recording);s.closed=true;s.fenced=false;
+    return {status:'stopped',evidence:evidence(s,{cancelled:cancel,physicalClosure:status,mediaState,publishable,...(mediaError?{mediaError}:{}),...(s.metadata?{metadata:s.metadata}:{})})};
    }catch(e){s.fenced=true;return unknown(s,e);}
   })();return s.stopPromise;
  }
@@ -48,7 +55,8 @@ export function createRecordingAdapter({recording,botId,source='application',tar
     const live=async()=>{if(signal?.aborted)throw error('ABORTED');await guard(s.binding);await resolved.validate();if(signal?.aborted)throw error('ABORTED');};
     await live();check(Number.isInteger(ctx.maxRecordingSeconds)&&ctx.maxRecordingSeconds>=1&&ctx.maxRecordingSeconds<=180,'Recording duration must be integer 1–180 seconds');
     s.called=true;
-    const ready=await recording.start(botId,{source,...(!own?{targetId}:{}),maxDurationSeconds:ctx.maxRecordingSeconds,signal,guard:live});
+    const cleanupGuard=async()=>{if(signal?.aborted)throw error('ABORTED');await guard(s.binding);if(signal?.aborted)throw error('ABORTED');};
+    const ready=await recording.start(botId,{source,...(!own?{targetId}:{}),maxDurationSeconds:ctx.maxRecordingSeconds,signal,guard:live,cleanupGuard});
     check(ready?.ok===true&&typeof ready.recordingId==='string'&&/^[a-f0-9]{32}$/.test(ready.recordingId)&&ready.botId===botId,'Invalid owned recording acknowledgement');
     s.id=ready.recordingId;
     if(signal?.aborted||s.aborted){await end(true);throw error('ABORTED');}
@@ -67,7 +75,7 @@ export function createRecordingAdapter({recording,botId,source='application',tar
    const status=await recording.statusExact(botId,s.id);
    check(status.recordingId===s.id&&status.state==='closed'&&status.captureClosed===true&&status.startSettled===true,'Physical closure is still unknown');
    await recording.release(botId,s.id);if(sessions.get(recording)===s)sessions.delete(recording);s.fenced=false;s.closed=true;
-   return {status:'stopped',evidence:evidence(s,{reconciled:true,physicalClosure:status})};
+   return {status:'stopped',evidence:evidence(s,{reconciled:true,physicalClosure:status,mediaState:status.mediaState||'unusable',publishable:false})};
   },
   get recordingId(){return s?.id??null;},
   get metadata(){return s?.metadata?structuredClone(s.metadata):null;},

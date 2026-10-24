@@ -31,6 +31,7 @@ export function assertSpeechFits(segment,speechSeconds) {
 // Uses actual verified windows, never inferred pauses or synthetic timings.
 export function segmentsFromDirector(state) {
   ensure(state?.schemaVersion===1&&state.status==='completed'&&state.capture?.status==='stopped','Director run/capture must be completed/stopped');
+  ensure(state.capture.publishable!==false&&(!state.capture.mediaState||state.capture.mediaState==='complete'),'Partial or unusable capture cannot be narrated as a completed demo');
   ensure(Number.isFinite(state.capture.readyAt)&&Array.isArray(state.timeline),'Missing capture clock or timeline');
   ensure(object(state.binding)&&text(state.binding.planId,128)&&text(state.binding.planHash,128),'Missing director binding');
   const segments=state.timeline.map(s=>{

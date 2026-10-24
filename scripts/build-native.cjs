@@ -20,7 +20,7 @@ output ||= path.join(__dirname, '..', 'native', 'recording-helper');
 fs.mkdirSync(path.dirname(output), { recursive: true });
 function run(command, args) { const result = spawnSync(command, args, { stdio: 'inherit', env: { ...process.env, DEVELOPER_DIR: developer } }); if (result.error) throw result.error; if (result.status !== 0) process.exit(result.status || 1); }
 // Explicit maintainer workaround for a Swift driver crash; no automatic retry.
-run(compiler, [...(legacySwiftDriver ? ['-disallow-use-new-driver'] : []), '-parse-as-library', '-swift-version', '5', '-O', '-sdk', sdk, '-target', 'arm64-apple-macosx15.0', path.join(__dirname, '..', 'native', 'app-recording-macos.swift'), '-o', output]);
+run(compiler, [...(legacySwiftDriver ? ['-disallow-use-new-driver'] : []), '-parse-as-library', '-swift-version', '5', '-O', '-sdk', sdk, '-target', 'arm64-apple-macosx15.0', '-module-cache-path', path.join(path.dirname(output), '.recording-swift-module-cache'), path.join(__dirname, '..', 'native', 'app-recording-macos.swift'), '-o', output]);
 run('/usr/bin/codesign', ['--force', '--sign', '-', output]);
 run('/usr/bin/codesign', ['--verify', '--strict', output]);
 fs.chmodSync(output, 0o755);

@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "version": "0.2.2",
+  "published": false,
+  "publicDownloadVerified": false,
+  "realSourceCaptureVerified": true,
+  "finalPackagedHostVerified": false,
+  "canonicalInstallationVerified": false,
+  "archive": {
+    "filename": "openbot-dsh-desktop-capture-0.2.2.tgz",
+    "sha256": "2220c2d8b1b2d13d001ae438f42cb3ff340442c6590d13c0452da312685c50b2",
+    "bytes": 250707
+  },
+  "bundleSha256": "3594de16be1ff79765fd94703e4119f81f73517ae59bbaf4169e60dc1343eaf9",
+  "helper": {
+    "relativePath": "native/recording-helper",
+    "sha256": "38a3e8eb94b1ef727ec255011b1bc9e8e66226a6a50ac8fc29ddf06cec96908e"
+  },
+  "demoHelper": {
+    "relativePath": "native/demo-ax-helper",
+    "sha256": "1e3bd884a8267f9631118e5a9321a4f0e397e38d17354d9869deafb614d4653b"
+  },
+  "admission": {
+    "fileCount": 25,
+    "allSourceCandidateExtractedAdmittedBytesEqual": true,
+    "bundleTestsPassed": 22
+  },
+  "nativeBuild": {
+    "sourceSha256": "39630a7743fb4c1bbd5a5f625e9fa61d83854ee717418b5214f1bea2e1fdadfb",
+    "architecture": "arm64",
+    "minimumMacOS": 15,
+    "strictSignaturesVerified": true,
+    "signature": "ad-hoc; not notarized",
+    "legacySwiftDriver": true
+  },
+  "realSourceAcceptance": [
+    {
+      "kind": "browser playback; actual separate-window Stop and preview",
+      "durationSeconds": 40.53333333333333,
+      "bytes": 2022087,
+      "sha256": "eb555640a958fc6e0f5e1b895a5bcd3e3b509a87863f28377bac7cf037205c6c",
+      "sourceCommit": "504fd84",
+      "audioMode": "system",
+      "fullDecode": true,
+      "physicalRecorderClosed": true
+    },
+    {
+      "kind": "draft game-room public spectator, automatic duration cap",
+      "durationSeconds": 30,
+      "bytes": 729797,
+      "sha256": "b83baf69faf2998b7671bd55ec578bed5b33af5e9dab8f15115f057daead6585",
+      "sourceCommit": "504fd84",
+      "audioMode": "system-and-microphone",
+      "systemSamples": 1425600,
+      "microphoneSamples": 466432,
+      "fullDecode": true,
+      "physicalRecorderClosed": true
+    },
+    {
+      "kind": "actual saved room preview and browser hide/restore",
+      "sourceCommit": "2d2b742",
+      "visiblePlaybackSeconds": [
+        12,
+        25
+      ],
+      "review": "native CXLuna bounded visual review"
+    }
+  ],
+  "boundaries": [
+    "Source Electron acceptance does not replace final packaged-host acceptance",
+    "Remaining App and public download/install/enable functional acceptance was waived by the release owner; no uncompleted acceptance is claimed as passed.",
+    "Local owned movie is not the requested WeChat video",
+    "Draft-room recording is not a completed game match",
+    "Camera overlays, concurrent recordings and selectable fps/resolution are not implemented",
+    "Audio samples and decoding do not establish subjective voice clarity"
+  ],
+  "history": "Original startup, toolbar, overlay and duration failures are retained in private test evidence; later fixed-path runs are separate results.",
+  "scope": "Pre-publication evidence snapshot; publication status is available on GitHub Releases. Further App acceptance was explicitly waived by the release owner.",
+  "pluginTests": {
+    "passed": 79,
+    "failed": 0
+  },
+  "finalPackagedHostEvidence": {
+    "ownFiveStepNarratedDemoPassed": true,
+    "calculatorNarratedExportPassed": false,
+    "calculatorError": "Export duration differs from original",
+    "targetWindowCloseVerified": false,
+    "furtherAcceptanceWaived": true
+  }
+}
